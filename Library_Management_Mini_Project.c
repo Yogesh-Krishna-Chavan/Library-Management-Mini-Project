@@ -23,10 +23,48 @@ struct Member {
 };
 
 // Function prototypes
+void signUp();
+void signIn();
 void inputDate(struct Date *date);
 void displayDate(struct Date date);
 void addDays(struct Date *date, int days);
 int compareDates(struct Date date1, struct Date date2);
+
+// Global variables
+struct User currentUser;
+
+//SignUp
+void signUp() {
+    int userTypeChoice;
+
+    printf("Select the user type:\n");
+    printf("1. Member\n");
+    printf("2. Owner\n");
+    printf("3. Librarian\n");
+    printf("Enter your choice: ");
+    scanf("%d", &userTypeChoice);
+
+    printf("Enter a username: ");
+    scanf("%s", currentUser.username);
+    printf("Enter a password: ");
+    scanf("%s", currentUser.password);
+
+    switch (userTypeChoice) {
+        case 1:
+            strcpy(currentUser.userType, "Member");
+            break;
+        case 2:
+            strcpy(currentUser.userType, "Owner");
+            break;
+        case 3:
+            strcpy(currentUser.userType, "Librarian");
+            break;
+        default:
+            printf("Invalid user type selection.\n");
+            return;
+    }
+}
+
 
 //Date1
 void inputDate1(struct Date *date1) {
@@ -57,7 +95,7 @@ void displayDate2(struct Date date2) {
 }
 
 void addDays(struct Date *date, int days) {
-    // Use the <time.h> library to manipulate dates
+    // Use <time.h> library to manipulate dates
     struct tm timeinfo = {0}; // Create a struct tm variable for the given date
 
     // Set the components of timeinfo to match the provided date
@@ -110,6 +148,18 @@ int compareDates(struct Date date1, struct Date date2) {
 
 // Main
 int main() {
+
+    // Sign up a new user
+    printf("\nSign Up for a new user:\n");
+    signUp();
+
+    // Display the user's information
+    printf("New user information:\n");
+    printf("Username: %s\n", currentUser.username);
+    printf("Password: %s\n", currentUser.password);
+    printf("User Type: %s\n", currentUser.userType);
+
+
     struct Date date1, date2;
 
     printf("Please enter a date:\n");
