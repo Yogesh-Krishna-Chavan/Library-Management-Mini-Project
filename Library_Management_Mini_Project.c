@@ -65,6 +65,39 @@ void signUp() {
     }
 }
 
+//SignIn
+void signIn() {
+    printf("Enter your username: ");
+    scanf("%s", currentUser.username);
+    printf("Enter your password: ");
+    scanf("%s", currentUser.password);
+
+    // Validate user and set user type
+    if (strcmp(currentUser.userType, "Owner") == 0) {
+        ownerMenu();
+    } else if (strcmp(currentUser.userType, "Librarian") == 0) {
+        librarianMenu();
+    } else if (strcmp(currentUser.userType, "Member") == 0) {
+        memberMenu();
+    } else {
+        printf("Invalid user type.\n");
+    }
+}
+
+void ownerMenu() {
+    // Implement owner menu
+    printf("Owner Menu\n");
+}
+
+void librarianMenu() {
+    // Implement librarian menu
+    printf("Librarian Menu\n");
+}
+
+void memberMenu() {
+    // Implement member menu
+    printf("Member Menu\n");
+}
 
 //Date1
 void inputDate1(struct Date *date1) {
@@ -146,12 +179,18 @@ int compareDates(struct Date date1, struct Date date2) {
     return diff_days; // Return the difference in days
 }
 
+
+
 // Main
 int main() {
 
     // Sign up a new user
     printf("\nSign Up for a new user:\n");
     signUp();
+
+    //Sign in for user
+    printf("\nSign In for a new user:\n");
+    signIn();
 
     // Display the user's information
     printf("New user information:\n");
