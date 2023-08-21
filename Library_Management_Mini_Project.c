@@ -1,5 +1,18 @@
 #include <stdio.h>
 #include <time.h>
+#include <string.h>
+
+// Display the main menu
+void displayMainMenu()
+{
+    printf("Menu:\n");
+    printf("1. Sign Up\n");
+    printf("2. Sign In\n");
+    printf("3. Add Book\n");
+    printf("4. Find Book\n");
+    printf("0. Exit\n");
+    printf("Enter your choice: ");
+}
 
 // Define structures
 struct Date {
@@ -22,6 +35,15 @@ struct Member {
     float fineAmount;
 };
 
+struct Book {
+    int bookId;
+    char bookName[100];
+    char author[100];
+    int totalCopies;
+    int availableCopies;
+    int bookPrice; 
+};
+
 // Function prototypes
 void signUp();
 void signIn();
@@ -29,9 +51,14 @@ void inputDate(struct Date *date);
 void displayDate(struct Date date);
 void addDays(struct Date *date, int days);
 int compareDates(struct Date date1, struct Date date2);
+void ownerMenu();
+void librarianMenu();
+void memberMenu();
 
 // Global variables
 struct User currentUser;
+struct Book books[100]; // You can adjust the size as needed
+int numBooks = 0;
 
 //SignUp
 void signUp() {
@@ -63,40 +90,268 @@ void signUp() {
             printf("Invalid user type selection.\n");
             return;
     }
+    printf("User signed up successfully!\n");
 }
 
 //SignIn
 void signIn() {
+    char enteredUsername[50]; // Temporary storage for entered username
+    char enteredPassword[50]; // Temporary storage for entered password
+
     printf("Enter your username: ");
-    scanf("%s", currentUser.username);
+    scanf("%s", enteredUsername); // Store entered username in temporary variable
     printf("Enter your password: ");
-    scanf("%s", currentUser.password);
+    scanf("%s", enteredPassword); // Store entered password in temporary variable
 
     // Validate user and set user type
-    if (strcmp(currentUser.userType, "Owner") == 0) {
-        ownerMenu();
-    } else if (strcmp(currentUser.userType, "Librarian") == 0) {
-        librarianMenu();
-    } else if (strcmp(currentUser.userType, "Member") == 0) {
-        memberMenu();
+    if (strcmp(enteredUsername, currentUser.username) == 0 && strcmp(enteredPassword, currentUser.password) == 0) {
+
+        printf("SignIn successful\n");
+
+        if (strcmp(currentUser.userType, "Owner") == 0) {
+            ownerMenu();
+        } else if (strcmp(currentUser.userType, "Librarian") == 0) {
+            librarianMenu();
+        } else if (strcmp(currentUser.userType, "Member") == 0) {
+            memberMenu();
+        } else {
+            printf("Invalid user type.\n");
+        }
     } else {
-        printf("Invalid user type.\n");
+        printf("Invalid username or password.\n");
     }
+    return;
 }
 
 void ownerMenu() {
-    // Implement owner menu
-    printf("Owner Menu\n");
+    int choice;
+
+    printf("Owner Menu:\n");
+    printf("1. Sign Out\n");
+    printf("2. Edit Profile\n");
+    printf("3. Change Password\n");
+    printf("4. Appoint Librarian\n");
+    printf("5. Fees Report\n");
+    printf("6. Fine Report\n");
+    printf("7. Books Categories\n");
+    printf("8. Books Available\n");
+    printf("Enter your choice: ");
+    
+    scanf("%d", &choice);
+
+    switch (choice) {
+        case 1:
+            // Sign out
+            printf("Signing out...\n");
+            break;
+        case 2:
+            // Edit Profile
+            printf("Editing profile...\n");
+            break;
+        case 3:
+            // Change Password
+            printf("Changing password...\n");
+            break;
+        case 4:
+            // Appoint Librarian
+            printf("Appointing librarian...\n");
+            break;
+        case 5:
+            // Fees Report
+            printf("Generating fees report...\n");
+            break;
+        case 6:
+            // Fine Report
+            printf("Generating fine report...\n");
+            break;
+        case 7:
+            // Books Categories
+            printf("Displaying book categories...\n");
+            break;
+        case 8:
+            // Books Available
+            printf("Displaying available books...\n");
+            break;
+        default:
+            printf("Invalid choice. Please select a valid option.\n");
+    }
 }
 
+
 void librarianMenu() {
-    // Implement librarian menu
-    printf("Librarian Menu\n");
+    int choice;
+
+    printf("Librarian Menu:\n");
+    printf("1. Sign Out\n");
+    printf("2. Edit Profile\n");
+    printf("3. Change Password\n");
+    printf("4. Sign In\n");
+    printf("5. Return Copy\n");
+    printf("6. Issue Copy\n");
+    printf("7. Find Book\n");
+    printf("8. Edit Book\n");
+    printf("9. Add New Book\n");
+    printf("10. Check Availability\n");
+    printf("11. Add New Copy\n");
+    printf("12. Change Rack\n");
+    printf("13. Add New Member\n");
+    printf("14. Take Payment\n");
+    printf("Enter your choice: ");
+    
+    scanf("%d", &choice);
+
+    switch (choice) {
+        case 1:
+            // Sign out
+            printf("Signing out...\n");
+            break;
+        case 2:
+            // Edit Profile
+            printf("Editing profile...\n");
+            break;
+        case 3:
+            // Change Password
+            printf("Changing password...\n");
+            break;
+        case 4:
+            // Sign In
+            printf("Signing in...\n");
+            break;
+        case 5:
+            // Return Copy
+            printf("Returning a copy...\n");
+            break;
+        case 6:
+            // Issue Copy
+            printf("Issuing a copy...\n");
+            break;
+        case 7:
+            // Find Book
+            printf("Finding a book...\n");
+            break;
+        case 8:
+            // Edit Book
+            printf("Editing a book...\n");
+            break;
+        case 9:
+            // Add New Book
+            printf("Adding a new book...\n");
+            break;
+        case 10:
+            // Check Availability
+            printf("Checking book availability...\n");
+            break;
+        case 11:
+            // Add New Copy
+            printf("Adding a new copy...\n");
+            break;
+        case 12:
+            // Change Rack
+            printf("Changing rack...\n");
+            break;
+        case 13:
+            // Add New Member
+            printf("Adding a new member...\n");
+            break;
+        case 14:
+            // Take Payment
+            printf("Taking payment...\n");
+            break;
+        default:
+            printf("Invalid choice. Please select a valid option.\n");
+    }
 }
 
 void memberMenu() {
-    // Implement member menu
-    printf("Member Menu\n");
+    int choice;
+
+    printf("Member Menu:\n");
+    printf("1. Sign Out\n");
+    printf("2. Sign Up\n");
+    printf("3. Edit Profile\n");
+    printf("4. Change Password\n");
+    printf("5. Find Book\n");
+    printf("6. Check Availability\n");
+    printf("Enter your choice: ");
+    
+    scanf("%d", &choice);
+
+    switch (choice) {
+        case 1:
+            // Sign out
+            printf("Signing out...\n");
+            break;
+        case 2:
+            // Sign Up
+            printf("Signing up...\n");
+            break;
+        case 3:
+            // Edit Profile
+            printf("Editing profile...\n");
+            break;
+        case 4:
+            // Change Password
+            printf("Changing password...\n");
+            break;
+        case 5:
+            // Find Book
+            printf("Finding a book...\n");
+            break;
+        case 6:
+            // Check Availability
+            printf("Checking book availability...\n");
+            break;
+        default:
+            printf("Invalid choice. Please select a valid option.\n");
+    }
+}
+
+// Function to add a new book
+void addBook() {
+    printf("Enter Book Details:\n");
+    printf("Book ID: ");
+    scanf("%d", &books[numBooks].bookId);
+    printf("Book Name: ");
+    scanf(" %[^\n]", books[numBooks].bookName); // Read the whole line
+    printf("Author: ");
+    scanf(" %[^\n]", books[numBooks].author); // Read the whole line
+    printf("Total Copies: ");
+    scanf("%d", &books[numBooks].totalCopies);
+    printf("Available Copies: ");
+    scanf("%d", &books[numBooks].availableCopies);
+    printf("Book Price: ");
+    scanf("%d", &books[numBooks].bookPrice);
+
+    numBooks++; // Increment the number of books
+    printf("Book added successfully!\n");
+}
+
+// Function to find a book by name
+void findBook() {
+    char searchName[100];
+    printf("Enter the book name to search for: ");
+    scanf(" %[^\n]", searchName); // Read the whole line
+
+    int found = 0; // Flag to indicate if book is found
+
+    // Search for the book
+    for (int i = 0; i < numBooks; i++) {
+        if (strcmp(searchName, books[i].bookName) == 0) {
+            printf("Book found:\n");
+            printf("Book ID: %d\n", books[i].bookId);
+            printf("Book Name: %s\n", books[i].bookName);
+            printf("Author: %s\n", books[i].author);
+            printf("Total Copies: %d\n", books[i].totalCopies);
+            printf("Available Copies: %d\n", books[i].availableCopies);
+            printf("Book Price: %d\n", books[i].bookPrice);
+            found = 1;
+            break;
+        }
+    }
+
+    if (!found) {
+        printf("Book not found.\n");
+    }
 }
 
 //Date1
@@ -128,7 +383,7 @@ void displayDate2(struct Date date2) {
 }
 
 void addDays(struct Date *date, int days) {
-    // Use <time.h> library to manipulate dates
+    // Use <time.h> library
     struct tm timeinfo = {0}; // Create a struct tm variable for the given date
 
     // Set the components of timeinfo to match the provided date
@@ -179,18 +434,47 @@ int compareDates(struct Date date1, struct Date date2) {
     return diff_days; // Return the difference in days
 }
 
-
-
 // Main
 int main() {
+    int choice;
 
-    // Sign up a new user
-    printf("\nSign Up for a new user:\n");
-    signUp();
+    do
+    {
+    displayMainMenu();
+        scanf("%d", &choice);
 
-    //Sign in for user
-    printf("\nSign In for a new user:\n");
-    signIn();
+        switch (choice)
+        {
+        case 1:
+            // Sign up a new user
+            printf("\nSign Up for a new user:\n");
+            signUp();
+            break;
+    
+        case 2:
+            //Sign in for user
+            printf("\nSign In for a new user:\n");
+            signIn();
+            break;
+
+        case 3:
+            //Add book
+            addBook();
+            break;
+
+        case 4:
+            //Find book
+            findBook();
+            break;
+
+        case 0:
+            printf("Exiting the program.\n");
+            break;
+
+        default:
+            printf("Invalid choice. Please select a valid option.\n");
+        }
+    } while (choice != 0);
 
     // Display the user's information
     printf("New user information:\n");
@@ -200,13 +484,10 @@ int main() {
 
 
     struct Date date1, date2;
-
     printf("Please enter a date:\n");
     inputDate1(&date1);
-
     printf("Please enter a date:\n");
     inputDate2(&date2);
-
     printf("You entered the following date1: ");
     displayDate1(date1); // Call the displayDate function to display the entered date1
     printf("\n");
