@@ -123,6 +123,7 @@ void signIn() {
     return;
 }
 
+//OwnerMenu
 void ownerMenu() {
     int choice;
 
@@ -177,7 +178,7 @@ void ownerMenu() {
     }
 }
 
-
+//LibrarianMenu
 void librarianMenu() {
     int choice;
 
@@ -262,6 +263,7 @@ void librarianMenu() {
     }
 }
 
+//MemberMenu
 void memberMenu() {
     int choice;
 
@@ -382,6 +384,7 @@ void displayDate2(struct Date date2) {
     printf("%02d/%02d/%04d", date2.dd, date2.mm, date2.yy);
 }
 
+//Add Days
 void addDays(struct Date *date, int days) {
     // Use <time.h> library
     struct tm timeinfo = {0}; // Create a struct tm variable for the given date
@@ -406,6 +409,7 @@ void addDays(struct Date *date, int days) {
     date->yy = new_timeinfo->tm_year + 1900; // Update year (add 1900 to get actual year)
 }
 
+//Compair Date and Find Difference
 int compareDates(struct Date date1, struct Date date2) {
     // Calculate the difference in days between two dates
     struct tm timeinfo1 = {0}; // Create a struct tm variable for the first date
@@ -482,7 +486,7 @@ int main() {
     printf("Password: %s\n", currentUser.password);
     printf("User Type: %s\n", currentUser.userType);
 
-
+    //Add two dates
     struct Date date1, date2;
     printf("Please enter a date:\n");
     inputDate1(&date1);
