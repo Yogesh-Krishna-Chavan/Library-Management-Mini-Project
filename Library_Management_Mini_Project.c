@@ -22,7 +22,7 @@ struct Date {
 };
 
 struct User {
-    char username[50];
+    char email[50];
     char password[50];
     char userType[20]; // Owner/Librarian/Member
 };
@@ -30,9 +30,20 @@ struct User {
 struct Member {
     int memberId;
     char memberName[100];
+    char email[50];
     struct Date joinDate;
     int isPaidUser;
     float fineAmount;
+};
+
+struct Owner {
+    char ownerName[100];
+    char email[50];
+};
+
+struct Librarian {
+    char librarianName[100];
+    char email[50];
 };
 
 struct Book {
@@ -71,8 +82,8 @@ void signUp() {
     printf("Enter your choice: ");
     scanf("%d", &userTypeChoice);
 
-    printf("Enter a username: ");
-    scanf("%s", currentUser.username);
+    printf("Enter a email: ");
+    scanf("%s", currentUser.email);
     printf("Enter a password: ");
     scanf("%s", currentUser.password);
 
@@ -94,37 +105,38 @@ void signUp() {
 }
 
 //SignIn
-void signIn() {
-    char enteredUsername[50]; // Temporary storage for entered username
+void signIn(struct User *user) {
+    char enteredEmail[50]; // Temporary storage for entered email
     char enteredPassword[50]; // Temporary storage for entered password
 
-    printf("Enter your username: ");
-    scanf("%s", enteredUsername); // Store entered username in temporary variable
+    printf("Enter your email: ");
+    scanf("%s", enteredEmail); // Store entered email in temporary variable
     printf("Enter your password: ");
     scanf("%s", enteredPassword); // Store entered password in temporary variable
 
     // Validate user and set user type
-    if (strcmp(enteredUsername, currentUser.username) == 0 && strcmp(enteredPassword, currentUser.password) == 0) {
+    if (strcmp(enteredEmail, user->email) == 0 && strcmp(enteredPassword, user->password) == 0) {
 
         printf("SignIn successful\n");
 
-        if (strcmp(currentUser.userType, "Owner") == 0) {
+        if (strcmp(user->userType, "Owner") == 0) {
             ownerMenu();
-        } else if (strcmp(currentUser.userType, "Librarian") == 0) {
+        } else if (strcmp(user->userType, "Librarian") == 0) {
             librarianMenu();
-        } else if (strcmp(currentUser.userType, "Member") == 0) {
+        } else if (strcmp(user->userType, "Member") == 0) {
             memberMenu();
         } else {
             printf("Invalid user type.\n");
         }
     } else {
-        printf("Invalid username or password.\n");
+        printf("Invalid email or password.\n");
     }
     return;
 }
 
 //OwnerMenu
 void ownerMenu() {
+    struct Owner ownerProfile; // Create an instance of OwnerProfile
     int choice;
 
     printf("Owner Menu:\n");
@@ -147,11 +159,11 @@ void ownerMenu() {
             break;
         case 2:
             // Edit Profile
-            printf("Editing profile...\n");
+            editProfileOwner(&ownerProfile);
             break;
         case 3:
             // Change Password
-            printf("Changing password...\n");
+            changePassword(&currentUser);
             break;
         case 4:
             // Appoint Librarian
@@ -178,8 +190,33 @@ void ownerMenu() {
     }
 }
 
+// Function to edit the owner's profile
+void editProfileOwner(struct Owner *profile) {
+    printf("Editing profile...\n");
+
+    printf("Enter your name: ");
+    scanf("%s", profile->ownerName);
+    
+    printf("Enter your email: ");
+    scanf("%s", profile->email);
+
+    printf("Profile Updated Successfully.\n");
+
+}
+
+// Function to change the password For Owner/Member/Librarian
+void changePassword(struct User *user) {
+    char newPassword[50];
+    printf("Enter your new password: ");
+    scanf("%s", newPassword);
+    strcpy(user->password, newPassword);
+    printf("Password changed successfully!\n");
+}
+
+
 //LibrarianMenu
 void librarianMenu() {
+    struct Librarian librarianProfile;
     int choice;
 
     printf("Librarian Menu:\n");
@@ -208,11 +245,11 @@ void librarianMenu() {
             break;
         case 2:
             // Edit Profile
-            printf("Editing profile...\n");
+            editProfileLibrarian(&librarianProfile);
             break;
         case 3:
             // Change Password
-            printf("Changing password...\n");
+            changePassword(&currentUser);
             break;
         case 4:
             // Sign In
@@ -263,8 +300,23 @@ void librarianMenu() {
     }
 }
 
+// Function to edit the librarian's profile
+void editProfileLibrarian(struct Librarian *profile) {
+    printf("Editing profile...\n");
+
+    printf("Enter your name: ");
+    scanf("%s", profile->librarianName);
+    
+    printf("Enter your email: ");
+    scanf("%s", profile->email);
+
+    printf("Profile Updated Successfully.\n");
+
+}
+
 //MemberMenu
 void memberMenu() {
+    struct Member memberProfile; // Create an instance of OwnerProfile
     int choice;
 
     printf("Member Menu:\n");
@@ -289,11 +341,11 @@ void memberMenu() {
             break;
         case 3:
             // Edit Profile
-            printf("Editing profile...\n");
+            editProfileMember(&memberProfile);
             break;
         case 4:
             // Change Password
-            printf("Changing password...\n");
+            changePassword(&currentUser);
             break;
         case 5:
             // Find Book
@@ -306,6 +358,20 @@ void memberMenu() {
         default:
             printf("Invalid choice. Please select a valid option.\n");
     }
+}
+
+// Function to edit the member's profile
+void editProfileMember(struct Member *profile) {
+    printf("Editing profile...\n");
+
+    printf("Enter your name: ");
+    scanf("%s", profile->memberName);
+    
+    printf("Enter your email: ");
+    scanf("%s", profile->email);
+
+    printf("Profile Updated Successfully.\n");
+
 }
 
 // Function to add a new book
@@ -458,7 +524,7 @@ int main() {
         case 2:
             //Sign in for user
             printf("\nSign In for a new user:\n");
-            signIn();
+            signIn(&currentUser);
             break;
 
         case 3:
@@ -482,7 +548,7 @@ int main() {
 
     // Display the user's information
     printf("New user information:\n");
-    printf("Username: %s\n", currentUser.username);
+    printf("email: %s\n", currentUser.email);
     printf("Password: %s\n", currentUser.password);
     printf("User Type: %s\n", currentUser.userType);
 
