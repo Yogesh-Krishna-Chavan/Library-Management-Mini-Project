@@ -8,8 +8,6 @@ void displayMainMenu()
     printf("Menu:\n");
     printf("1. Sign Up\n");
     printf("2. Sign In\n");
-    printf("3. Add Book\n");
-    printf("4. Find Book\n");
     printf("0. Exit\n");
     printf("Enter your choice: ");
 }
@@ -65,6 +63,12 @@ int compareDates(struct Date date1, struct Date date2);
 void ownerMenu();
 void librarianMenu();
 void memberMenu();
+void editProfileOwner(struct Owner *profile);
+void changePassword(struct User *user);
+void editProfileLibrarian(struct Librarian *profile);
+void addBook();
+void addBookCopy();
+void editProfileMember(struct Member *profile);
 
 // Global variables
 struct User currentUser;
@@ -265,7 +269,7 @@ void librarianMenu() {
             break;
         case 7:
             // Find Book
-            printf("Finding a book...\n");
+            findBook();
             break;
         case 8:
             // Edit Book
@@ -273,7 +277,7 @@ void librarianMenu() {
             break;
         case 9:
             // Add New Book
-            printf("Adding a new book...\n");
+            addBook();
             break;
         case 10:
             // Check Availability
@@ -281,7 +285,7 @@ void librarianMenu() {
             break;
         case 11:
             // Add New Copy
-            printf("Adding a new copy...\n");
+            addBookCopy();
             break;
         case 12:
             // Change Rack
@@ -312,6 +316,84 @@ void editProfileLibrarian(struct Librarian *profile) {
 
     printf("Profile Updated Successfully.\n");
 
+}
+
+// Function to add a new book
+void addBook() {
+    printf("Enter Book Details:\n");
+    printf("Book ID: ");
+    scanf("%d", &books[numBooks].bookId);
+    printf("Book Name: ");
+    scanf(" %[^\n]", books[numBooks].bookName); // Read the whole line
+    printf("Author: ");
+    scanf(" %[^\n]", books[numBooks].author); // Read the whole line
+    printf("Total Copies: ");
+    scanf("%d", &books[numBooks].totalCopies);
+    printf("Available Copies: ");
+    scanf("%d", &books[numBooks].availableCopies);
+    printf("Book Price: ");
+    scanf("%d", &books[numBooks].bookPrice);
+
+    numBooks++; // Increment the number of books
+    printf("Book added successfully!\n");
+}
+
+// Function to find a book by name
+void findBook() {
+    char searchName[100];
+    printf("Enter the book name to search for: ");
+    scanf(" %[^\n]", searchName); // Read the whole line
+
+    int found = 0; // Flag to indicate if book is found
+
+    // Search for the book
+    for (int i = 0; i < numBooks; i++) {
+        if (strcmp(searchName, books[i].bookName) == 0) {
+            printf("Book found:\n");
+            printf("Book ID: %d\n", books[i].bookId);
+            printf("Book Name: %s\n", books[i].bookName);
+            printf("Author: %s\n", books[i].author);
+            printf("Total Copies: %d\n", books[i].totalCopies);
+            printf("Available Copies: %d\n", books[i].availableCopies);
+            printf("Book Price: %d\n", books[i].bookPrice);
+            found = 1;
+            break;
+        }
+    }
+
+    if (!found) {
+        printf("Book not found.\n");
+    }
+}
+
+void addBookCopy() {
+    int bookId, numCopies;
+
+    printf("Enter the Book ID to add copies: ");
+    scanf("%d", &bookId);
+
+    // Find the book by its ID
+    int foundIndex = -1;
+    for (int i = 0; i < numBooks; i++) {
+        if (books[i].bookId == bookId) {
+            foundIndex = i;
+            break;
+        }
+    }
+
+    if (foundIndex == -1) {
+        printf("Book with ID %d not found.\n", bookId);
+        return;
+    }
+
+    printf("Enter the number of copies to add: ");
+    scanf("%d", &numCopies);
+
+    // Update the available copies
+    books[foundIndex].totalCopies += numCopies;
+    books[foundIndex].availableCopies += numCopies;
+
+    printf("%d copies added to the book \"%s\".\n", numCopies, books[foundIndex].bookName);
 }
 
 //MemberMenu
@@ -372,54 +454,6 @@ void editProfileMember(struct Member *profile) {
 
     printf("Profile Updated Successfully.\n");
 
-}
-
-// Function to add a new book
-void addBook() {
-    printf("Enter Book Details:\n");
-    printf("Book ID: ");
-    scanf("%d", &books[numBooks].bookId);
-    printf("Book Name: ");
-    scanf(" %[^\n]", books[numBooks].bookName); // Read the whole line
-    printf("Author: ");
-    scanf(" %[^\n]", books[numBooks].author); // Read the whole line
-    printf("Total Copies: ");
-    scanf("%d", &books[numBooks].totalCopies);
-    printf("Available Copies: ");
-    scanf("%d", &books[numBooks].availableCopies);
-    printf("Book Price: ");
-    scanf("%d", &books[numBooks].bookPrice);
-
-    numBooks++; // Increment the number of books
-    printf("Book added successfully!\n");
-}
-
-// Function to find a book by name
-void findBook() {
-    char searchName[100];
-    printf("Enter the book name to search for: ");
-    scanf(" %[^\n]", searchName); // Read the whole line
-
-    int found = 0; // Flag to indicate if book is found
-
-    // Search for the book
-    for (int i = 0; i < numBooks; i++) {
-        if (strcmp(searchName, books[i].bookName) == 0) {
-            printf("Book found:\n");
-            printf("Book ID: %d\n", books[i].bookId);
-            printf("Book Name: %s\n", books[i].bookName);
-            printf("Author: %s\n", books[i].author);
-            printf("Total Copies: %d\n", books[i].totalCopies);
-            printf("Available Copies: %d\n", books[i].availableCopies);
-            printf("Book Price: %d\n", books[i].bookPrice);
-            found = 1;
-            break;
-        }
-    }
-
-    if (!found) {
-        printf("Book not found.\n");
-    }
 }
 
 //Date1
@@ -504,6 +538,7 @@ int compareDates(struct Date date1, struct Date date2) {
     return diff_days; // Return the difference in days
 }
 
+
 // Main
 int main() {
     int choice;
@@ -525,16 +560,6 @@ int main() {
             //Sign in for user
             printf("\nSign In for a new user:\n");
             signIn(&currentUser);
-            break;
-
-        case 3:
-            //Add book
-            addBook();
-            break;
-
-        case 4:
-            //Find book
-            findBook();
             break;
 
         case 0:
