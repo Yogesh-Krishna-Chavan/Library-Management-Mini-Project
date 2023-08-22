@@ -273,7 +273,7 @@ void librarianMenu() {
             break;
         case 8:
             // Edit Book
-            printf("Editing a book...\n");
+            editBook();
             break;
         case 9:
             // Add New Book
@@ -396,6 +396,39 @@ void addBookCopy() {
     printf("%d copies added to the book \"%s\".\n", numCopies, books[foundIndex].bookName);
 }
 
+// Function to edit a book
+void editBook() {
+    int bookId;
+
+    printf("Enter the Book ID to edit: ");
+    scanf("%d", &bookId);
+
+    // Find the book by its ID
+    int foundIndex = -1;
+    for (int i = 0; i < numBooks; i++) {
+        if (books[i].bookId == bookId) {
+            foundIndex = i;
+            break;
+        }
+    }
+
+    if (foundIndex == -1) {
+        printf("Book with ID %d not found.\n", bookId);
+        return;
+    }
+
+    // Edit book details
+    printf("Enter new Book Name: ");
+    scanf(" %[^\n]", books[foundIndex].bookName);
+    printf("Enter new Author: ");
+    scanf(" %[^\n]", books[foundIndex].author);
+    printf("Enter new Book Price: ");
+    scanf("%d", &books[foundIndex].bookPrice);
+
+    printf("Book details updated successfully!\n");
+}
+
+
 //MemberMenu
 void memberMenu() {
     struct Member memberProfile; // Create an instance of OwnerProfile
@@ -431,7 +464,7 @@ void memberMenu() {
             break;
         case 5:
             // Find Book
-            printf("Finding a book...\n");
+            findBook();
             break;
         case 6:
             // Check Availability
