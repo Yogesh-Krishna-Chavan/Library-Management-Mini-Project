@@ -48,6 +48,7 @@ struct Book {
     int bookId;
     char bookName[100];
     char author[100];
+    int rackNumber;
     int totalCopies;
     int availableCopies;
     int bookPrice; 
@@ -289,7 +290,7 @@ void librarianMenu() {
             break;
         case 12:
             // Change Rack
-            printf("Changing rack...\n");
+            changeRack();
             break;
         case 13:
             // Add New Member
@@ -428,6 +429,35 @@ void editBook() {
     printf("Book details updated successfully!\n");
 }
 
+// Function to change the rack of a book
+void changeRack() {
+    int bookId, newRack;
+
+    printf("Enter Book ID: ");
+    scanf("%d", &bookId);
+
+    // Find the book by its ID
+    int foundIndex = -1;
+    for (int i = 0; i < numBooks; i++) {
+        if (books[i].bookId == bookId) {
+            foundIndex = i;
+            break;
+        }
+    }
+
+    if (foundIndex == -1) {
+        printf("Book with ID %d not found.\n", bookId);
+        return;
+    }
+
+    printf("Enter new Rack number: ");
+    scanf("%d", &newRack);
+
+    // Update the rack number
+    books[foundIndex].rackNumber = newRack;
+
+    printf("Rack number updated successfully!\n");
+}
 
 //MemberMenu
 void memberMenu() {
