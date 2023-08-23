@@ -73,7 +73,7 @@ void editProfileMember(struct Member *profile);
 
 // Global variables
 struct User currentUser;
-struct Book books[100]; // You can adjust the size as needed
+struct Book books[100]; // Adjust the size as needed
 int numBooks = 0;
 
 //SignUp
