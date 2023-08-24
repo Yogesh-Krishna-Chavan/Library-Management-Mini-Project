@@ -139,6 +139,16 @@ void signIn(struct User *user) {
     return;
 }
 
+// Sign Out Function
+void signOut(struct User *user) {
+    // Reset user data to simulate signing out
+    strcpy(user->email, "");
+    strcpy(user->password, "");
+    strcpy(user->userType, "");
+    
+    printf("Signed out successfully.\n");
+}
+
 //OwnerMenu
 void ownerMenu() {
     struct Owner ownerProfile; // Create an instance of OwnerProfile
@@ -160,7 +170,7 @@ void ownerMenu() {
     switch (choice) {
         case 1:
             // Sign out
-            printf("Signing out...\n");
+            signOut(&currentUser);
             break;
         case 2:
             // Edit Profile
@@ -246,7 +256,7 @@ void librarianMenu() {
     switch (choice) {
         case 1:
             // Sign out
-            printf("Signing out...\n");
+            signOut(&currentUser);
             break;
         case 2:
             // Edit Profile
@@ -478,7 +488,7 @@ void memberMenu() {
     switch (choice) {
         case 1:
             // Sign out
-            printf("Signing out...\n");
+            signOut(&currentUser);
             break;
         case 2:
             // Sign Up
