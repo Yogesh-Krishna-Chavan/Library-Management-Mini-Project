@@ -37,6 +37,7 @@ struct Member {
 struct Owner {
     char ownerName[100];
     char email[50];
+    char librarianEmail[50];
 };
 
 struct Librarian {
@@ -149,6 +150,15 @@ void signOut(struct User *user) {
     printf("Signed out successfully.\n");
 }
 
+// Function to change the password For Owner/Member/Librarian
+void changePassword(struct User *user) {
+    char newPassword[50];
+    printf("Enter your new password: ");
+    scanf("%s", newPassword);
+    strcpy(user->password, newPassword);
+    printf("Password changed successfully!\n");
+}
+
 //OwnerMenu
 void ownerMenu() {
     struct Owner ownerProfile; // Create an instance of OwnerProfile
@@ -182,7 +192,7 @@ void ownerMenu() {
             break;
         case 4:
             // Appoint Librarian
-            printf("Appointing librarian...\n");
+            appointLibrarian(&ownerProfile);
             break;
         case 5:
             // Fees Report
@@ -219,15 +229,17 @@ void editProfileOwner(struct Owner *profile) {
 
 }
 
-// Function to change the password For Owner/Member/Librarian
-void changePassword(struct User *user) {
-    char newPassword[50];
-    printf("Enter your new password: ");
-    scanf("%s", newPassword);
-    strcpy(user->password, newPassword);
-    printf("Password changed successfully!\n");
-}
+// Function to appoint a librarian
+void appointLibrarian(struct Owner *ownerProfile) {
+        printf("Enter librarian's email: ");
+        char librarianEmail[50];
+        scanf("%s", librarianEmail);
 
+        // Appoint the librarian by updating owner's data
+        strcpy(ownerProfile->librarianEmail, librarianEmail);
+
+        printf("Appointed librarian with email %s\n", librarianEmail);
+    }
 
 //LibrarianMenu
 void librarianMenu() {
@@ -238,17 +250,16 @@ void librarianMenu() {
     printf("1. Sign Out\n");
     printf("2. Edit Profile\n");
     printf("3. Change Password\n");
-    printf("4. Sign In\n");
-    printf("5. Return Copy\n");
-    printf("6. Issue Copy\n");
-    printf("7. Find Book\n");
-    printf("8. Edit Book\n");
-    printf("9. Add New Book\n");
-    printf("10. Check Availability\n");
-    printf("11. Add New Copy\n");
-    printf("12. Change Rack\n");
-    printf("13. Add New Member\n");
-    printf("14. Take Payment\n");
+    printf("4. Return Copy\n");
+    printf("5. Issue Copy\n");
+    printf("6. Find Book\n");
+    printf("7. Edit Book\n");
+    printf("8. Add New Book\n");
+    printf("9. Check Availability\n");
+    printf("10. Add New Copy\n");
+    printf("11. Change Rack\n");
+    printf("12. Add New Member\n");
+    printf("13. Take Payment\n");
     printf("Enter your choice: ");
     
     scanf("%d", &choice);
@@ -267,46 +278,42 @@ void librarianMenu() {
             changePassword(&currentUser);
             break;
         case 4:
-            // Sign In
-            printf("Signing in...\n");
-            break;
-        case 5:
             // Return Copy
             printf("Returning a copy...\n");
             break;
-        case 6:
+        case 5:
             // Issue Copy
             printf("Issuing a copy...\n");
             break;
-        case 7:
+        case 6:
             // Find Book
             findBook();
             break;
-        case 8:
+        case 7:
             // Edit Book
             editBook();
             break;
-        case 9:
+        case 8:
             // Add New Book
             addBook();
             break;
-        case 10:
+        case 9:
             // Check Availability
             printf("Checking book availability...\n");
             break;
-        case 11:
+        case 10:
             // Add New Copy
             addBookCopy();
             break;
-        case 12:
+        case 11:
             // Change Rack
             changeRack();
             break;
-        case 13:
+        case 12:
             // Add New Member
             printf("Adding a new member...\n");
             break;
-        case 14:
+        case 13:
             // Take Payment
             printf("Taking payment...\n");
             break;
@@ -476,11 +483,11 @@ void memberMenu() {
 
     printf("Member Menu:\n");
     printf("1. Sign Out\n");
-    printf("2. Sign Up\n");
-    printf("3. Edit Profile\n");
-    printf("4. Change Password\n");
-    printf("5. Find Book\n");
-    printf("6. Check Availability\n");
+    printf("3. Sign Up\n");
+    printf("4. Edit Profile\n");
+    printf("5. Change Password\n");
+    printf("6. Find Book\n");
+    printf("7. Check Availability\n");
     printf("Enter your choice: ");
     
     scanf("%d", &choice);
@@ -491,22 +498,18 @@ void memberMenu() {
             signOut(&currentUser);
             break;
         case 2:
-            // Sign Up
-            printf("Signing up...\n");
-            break;
-        case 3:
             // Edit Profile
             editProfileMember(&memberProfile);
             break;
-        case 4:
+        case 3:
             // Change Password
             changePassword(&currentUser);
             break;
-        case 5:
+        case 4:
             // Find Book
             findBook();
             break;
-        case 6:
+        case 5:
             // Check Availability
             printf("Checking book availability...\n");
             break;
