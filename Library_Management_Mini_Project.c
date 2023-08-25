@@ -29,6 +29,7 @@ struct Member {
     int memberId;
     char memberName[100];
     char email[50];
+    char password[50];
     struct Date joinDate;
     int isPaidUser;
     float fineAmount;
@@ -55,6 +56,12 @@ struct Book {
     int bookPrice; 
 };
 
+struct Book availableBooks[] = {
+    {1, "Book 1", 4},
+    {2, "Book 2", 5},
+    // Add more book entries as needed
+};
+
 // Function prototypes
 void signUp();
 void signIn();
@@ -71,43 +78,37 @@ void editProfileLibrarian(struct Librarian *profile);
 void addBook();
 void addBookCopy();
 void editProfileMember(struct Member *profile);
+void findBook();
+void editBook();
+void changeRack();
+void signUpMember();
+void signInMember(struct Member *member);
+void appointLibrarian(struct Owner *ownerProfile);
+void displayAvailableBooks();
+void addNewMember();
+void generateMemberId();
+void changePasswordForMember();
+
 
 // Global variables
 struct User currentUser;
 struct Book books[100]; // Adjust the size as needed
 int numBooks = 0;
+static int memberIdCounter = 1000;
 
 //SignUp
 void signUp() {
-    int userTypeChoice;
-
-    printf("Select the user type:\n");
-    printf("1. Member\n");
-    printf("2. Owner\n");
-    printf("3. Librarian\n");
-    printf("Enter your choice: ");
-    scanf("%d", &userTypeChoice);
-
+    
+    printf("Enter owner email & password\n");
+    
     printf("Enter a email: ");
     scanf("%s", currentUser.email);
     printf("Enter a password: ");
     scanf("%s", currentUser.password);
 
-    switch (userTypeChoice) {
-        case 1:
-            strcpy(currentUser.userType, "Member");
-            break;
-        case 2:
-            strcpy(currentUser.userType, "Owner");
-            break;
-        case 3:
-            strcpy(currentUser.userType, "Librarian");
-            break;
-        default:
-            printf("Invalid user type selection.\n");
-            return;
-    }
-    printf("User signed up successfully!\n");
+    strcpy(currentUser.userType, "Owner"); // Set the user type to "Owner"
+
+    printf("Owner signed up successfully!\n");
 }
 
 //SignIn
@@ -145,7 +146,6 @@ void signOut(struct User *user) {
     // Reset user data to simulate signing out
     strcpy(user->email, "");
     strcpy(user->password, "");
-    strcpy(user->userType, "");
     
     printf("Signed out successfully.\n");
 }
@@ -208,7 +208,7 @@ void ownerMenu() {
             break;
         case 8:
             // Books Available
-            printf("Displaying available books...\n");
+            displayAvailableBooks();
             break;
         default:
             printf("Invalid choice. Please select a valid option.\n");
@@ -225,21 +225,41 @@ void editProfileOwner(struct Owner *profile) {
     printf("Enter your email: ");
     scanf("%s", profile->email);
 
+    // Update the current user's email
+    strcpy(currentUser.email, profile->email);
+
     printf("Profile Updated Successfully.\n");
 
 }
 
 // Function to appoint a librarian
 void appointLibrarian(struct Owner *ownerProfile) {
-        printf("Enter librarian's email: ");
-        char librarianEmail[50];
-        scanf("%s", librarianEmail);
+    printf("Appoint Librarian:\n");
 
-        // Appoint the librarian by updating owner's data
-        strcpy(ownerProfile->librarianEmail, librarianEmail);
+    // Librarian Sign Up
+    struct User librarianUser;
+    printf("Librarian Sign Up:\n");
+    printf("Enter librarian's email: ");
+    scanf("%s", librarianUser.email);
+    printf("Enter librarian's password: ");
+    scanf("%s", librarianUser.password);
+    strcpy(librarianUser.userType, "Librarian");
 
-        printf("Appointed librarian with email %s\n", librarianEmail);
+    // Librarian Sign In
+    printf("Librarian Sign In:\n");
+    signIn(&librarianUser);
+}
+
+// Function to display available books
+void displayAvailableBooks() {
+    printf("Available Books:\n");
+    printf("ID\tBook Name\tAvailable Copies\n");
+    
+    int numBooks = sizeof(availableBooks) / sizeof(availableBooks[0]);
+    for (int i = 0; i < numBooks; i++) {
+        printf("%d\t%s\t%d\n", availableBooks[i].bookId, availableBooks[i].bookName, availableBooks[i].availableCopies);
     }
+}
 
 //LibrarianMenu
 void librarianMenu() {
@@ -310,13 +330,13 @@ void librarianMenu() {
             changeRack();
             break;
         case 12:
-            // Add New Member
-            printf("Adding a new member...\n");
+            // Add New Member -> signUp
+            addNewMember();
             break;
         case 13:
             // Take Payment
             printf("Taking payment...\n");
-            break;
+            break;    
         default:
             printf("Invalid choice. Please select a valid option.\n");
     }
@@ -474,6 +494,74 @@ void changeRack() {
     books[foundIndex].rackNumber = newRack;
 
     printf("Rack number updated successfully!\n");
+}
+
+// Function to add a new member and sign in
+void addNewMember() {
+    struct Member newMember;
+    
+    printf("Enter member details:\n");
+    printf("Enter member name: ");
+    scanf(" %[^\n]", newMember.memberName);
+    printf("Enter member email: ");
+    scanf("%s", newMember.email);
+    printf("Enter member password: ");
+    scanf("%s", newMember.password);
+    printf("Enter member join date (dd mm yyyy): ");
+    scanf("%d %d %d", &newMember.joinDate.dd, &newMember.joinDate.mm, &newMember.joinDate.yy);
+    
+    // You can also ask for other member-related details
+    
+    // Assume the rest of the details are set and initialize other fields
+    generateMemberId(&newMember); // You need to implement this function
+    newMember.isPaidUser = 0;
+    newMember.fineAmount = 0.0;
+    
+    // Add the new member to your data structure (e.g., array)
+    // members[numMembers] = newMember; // Assuming you have an array named 'members'
+    // numMembers++;
+
+    printf("Member signed up successfully!\n");
+
+    // Now sign in as the new member
+    printf("Sign In:\n");
+    signInMember(&newMember);
+}
+
+// Function to sign in as a member
+void signInMember(struct Member *member) {
+    char enteredPassword[50]; // Temporary storage for entered password
+
+    printf("Enter your password: ");
+    scanf("%s", enteredPassword);
+
+    // Compare password
+    if (strcmp(enteredPassword, member->password) == 0) {
+        printf("Sign In successful\n");
+
+        // First-time sign-in: Prompt to change password
+        if (strcmp(member->password, "default") == 0) {
+            printf("It's recommended to change your password.\n");
+            // You should implement a function to change the password
+            changePasswordForMember(member);
+        }
+
+        // Redirect to the member menu
+        memberMenu(member);
+    } else {
+        printf("Invalid password.\n");
+    }
+}
+
+void generateMemberId(struct Member *member) {
+   member->memberId = memberIdCounter++;
+}
+
+// Function to change the password for a member
+void changePasswordForMember(struct Member *member) {
+    printf("Enter your new password: ");
+    scanf("%s", member->password);
+    printf("Password changed successfully!\n");
 }
 
 //MemberMenu
