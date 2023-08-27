@@ -138,7 +138,6 @@ void signIn(struct User *user) {
     } else {
         printf("Invalid email or password.\n");
     }
-    return;
 }
 
 // Sign Out Function
@@ -232,10 +231,8 @@ void editProfileOwner(struct Owner *profile) {
 
 }
 
-// Function to appoint a librarian
-void appointLibrarian(struct Owner *ownerProfile) {
-    printf("Appoint Librarian:\n");
-
+// Function to handle librarian sign-up
+void librarianSignUp() {
     // Librarian Sign Up
     struct User librarianUser;
     printf("Librarian Sign Up:\n");
@@ -245,9 +242,42 @@ void appointLibrarian(struct Owner *ownerProfile) {
     scanf("%s", librarianUser.password);
     strcpy(librarianUser.userType, "Librarian");
 
-    // Librarian Sign In
-    printf("Librarian Sign In:\n");
-    signIn(&librarianUser);
+    // Store the sign-up details in the global currentUser variable
+    strcpy(currentUser.email, librarianUser.email);
+    strcpy(currentUser.password, librarianUser.password);
+    strcpy(currentUser.userType, librarianUser.userType);
+
+    printf("Librarian signed up successfully!\n");
+    signIn(&librarianUser); // Automatically sign in after sign-up
+}
+
+// Function to handle librarian sign-in
+void librarianSignIn() {
+
+    signIn(&currentUser);
+    
+}
+
+// Function to appoint a librarian
+void appointLibrarian(struct Owner *ownerProfile) {
+    printf("Appoint Librarian:\n");
+
+    int choice;
+    printf("1. Librarian Sign Up\n");
+    printf("2. Librarian Sign In\n");
+    printf("Enter your choice: ");
+    scanf("%d", &choice);
+
+    switch (choice) {
+        case 1:
+            librarianSignUp();
+            break;
+        case 2:
+            librarianSignIn();
+            break;
+        default:
+            printf("Invalid choice. Please select a valid option.\n");
+    }
 }
 
 // Function to display available books
@@ -571,11 +601,10 @@ void memberMenu() {
 
     printf("Member Menu:\n");
     printf("1. Sign Out\n");
-    printf("3. Sign Up\n");
-    printf("4. Edit Profile\n");
-    printf("5. Change Password\n");
-    printf("6. Find Book\n");
-    printf("7. Check Availability\n");
+    printf("2. Edit Profile\n");
+    printf("3. Change Password\n");
+    printf("4. Find Book\n");
+    printf("5. Check Availability\n");
     printf("Enter your choice: ");
     
     scanf("%d", &choice);
