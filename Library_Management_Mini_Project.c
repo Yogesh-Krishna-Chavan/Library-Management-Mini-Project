@@ -88,6 +88,7 @@ void displayAvailableBooks();
 void addNewMember();
 void generateMemberId();
 void changePasswordForMember();
+void ownerSignIn();
 
 
 // Global variables
@@ -95,6 +96,7 @@ struct User currentUser;
 struct Book books[100]; // Adjust the size as needed
 int numBooks = 0;
 static int memberIdCounter = 1000;
+
 
 //SignUp
 void signUp() {
@@ -162,7 +164,7 @@ void changePassword(struct User *user) {
 void ownerMenu() {
     struct Owner ownerProfile; // Create an instance of OwnerProfile
     int choice;
-
+    
     printf("Owner Menu:\n");
     printf("1. Sign Out\n");
     printf("2. Edit Profile\n");
@@ -291,6 +293,22 @@ void displayAvailableBooks() {
     }
 }
 
+
+void ownerSignIn() {
+    struct User ownerUser;
+    
+    printf("Enter your email: "); // Prompt the owner for their email
+    scanf("%s", ownerUser.email);
+
+    printf("Enter your password: "); // Prompt the owner for their password
+    scanf("%s", ownerUser.password);
+    
+    strcpy(ownerUser.userType, "Owner");
+    
+    signIn(&ownerUser);
+}
+
+
 //LibrarianMenu
 void librarianMenu() {
     struct Librarian librarianProfile;
@@ -310,6 +328,7 @@ void librarianMenu() {
     printf("11. Change Rack\n");
     printf("12. Add New Member\n");
     printf("13. Take Payment\n");
+    printf("14. Owner Menu\n");
     printf("Enter your choice: ");
     
     scanf("%d", &choice);
@@ -366,6 +385,10 @@ void librarianMenu() {
         case 13:
             // Take Payment
             printf("Taking payment...\n");
+            break;
+        case 14:
+            // Owner Menu
+            ownerSignIn();
             break;    
         default:
             printf("Invalid choice. Please select a valid option.\n");
@@ -594,6 +617,7 @@ void changePasswordForMember(struct Member *member) {
     printf("Password changed successfully!\n");
 }
 
+
 //MemberMenu
 void memberMenu() {
     struct Member memberProfile; // Create an instance of OwnerProfile
@@ -605,6 +629,7 @@ void memberMenu() {
     printf("3. Change Password\n");
     printf("4. Find Book\n");
     printf("5. Check Availability\n");
+    printf("6. Librarian Menu\n");
     printf("Enter your choice: ");
     
     scanf("%d", &choice);
@@ -629,6 +654,10 @@ void memberMenu() {
         case 5:
             // Check Availability
             printf("Checking book availability...\n");
+            break;
+        case 6:
+            // Check Availability
+            librarianSignIn();
             break;
         default:
             printf("Invalid choice. Please select a valid option.\n");
