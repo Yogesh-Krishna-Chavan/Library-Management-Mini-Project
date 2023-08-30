@@ -100,34 +100,63 @@ static int memberIdCounter = 1000;
 
 //SignUp
 void signUp() {
-    
+    struct User newUser;
+
     printf("Enter owner email & password\n");
     
-    printf("Enter a email: ");
-    scanf("%s", currentUser.email);
+    printf("Enter an email: ");
+    scanf("%s", newUser.email);
     printf("Enter a password: ");
-    scanf("%s", currentUser.password);
+    scanf("%s", newUser.password);
 
-    strcpy(currentUser.userType, "Owner"); // Set the user type to "Owner"
+    strcpy(newUser.userType, "Owner"); // Set the user type to "Owner"
+
+    // Save user data to a file
+    FILE *userFile = fopen("users.txt", "a"); // Open the file in append mode
+    if (userFile == NULL) {
+        printf("Error opening file for writing.\n");
+        return;
+    }
+
+    fprintf(userFile, "%s %s %s\n", newUser.email, newUser.password, newUser.userType);
+    fclose(userFile);
 
     printf("Owner signed up successfully!\n");
 }
 
+
 //SignIn
 void signIn(struct User *user) {
-    char enteredEmail[50]; // Temporary storage for entered email
-    char enteredPassword[50]; // Temporary storage for entered password
+    char enteredEmail[50];
+    char enteredPassword[50];
 
     printf("Enter your email: ");
-    scanf("%s", enteredEmail); // Store entered email in temporary variable
+    scanf("%s", enteredEmail);
     printf("Enter your password: ");
-    scanf("%s", enteredPassword); // Store entered password in temporary variable
+    scanf("%s", enteredPassword);
 
-    // Validate user and set user type
-    if (strcmp(enteredEmail, user->email) == 0 && strcmp(enteredPassword, user->password) == 0) {
+    FILE *userFile = fopen("users.txt", "r");
+    if (userFile == NULL) {
+        printf("Error opening file for reading.\n");
+        return;
+    }
 
+    struct User currentUser;
+    int signInSuccessful = 0; // Flag to indicate successful sign-in
+    while (fscanf(userFile, "%s %s %s", currentUser.email, currentUser.password, currentUser.userType) != EOF) {
+        if (strcmp(enteredEmail, currentUser.email) == 0 && strcmp(enteredPassword, currentUser.password) == 0) {
+            signInSuccessful = 1; // Set the sign-in flag
+            strcpy(user->email, currentUser.email); // Copy user data to the passed user pointer
+            strcpy(user->password, currentUser.password);
+            strcpy(user->userType, currentUser.userType);
+            break;
+        }
+    }
+
+    fclose(userFile);
+
+    if (signInSuccessful) {
         printf("SignIn successful\n");
-
         if (strcmp(user->userType, "Owner") == 0) {
             ownerMenu();
         } else if (strcmp(user->userType, "Librarian") == 0) {
@@ -142,14 +171,30 @@ void signIn(struct User *user) {
     }
 }
 
+
 // Sign Out Function
 void signOut(struct User *user) {
+    // Save a log entry indicating the sign-out event
+    FILE *logFile = fopen("logout_log.txt", "a"); // Open the log file in append mode
+    if (logFile == NULL) {
+        printf("Error opening log file for writing.\n");
+        return;
+    }
+
+    time_t currentTime;
+    time(&currentTime);
+    struct tm *timeInfo = localtime(&currentTime);
+
+    fprintf(logFile, "User %s signed out at %s", user->email, asctime(timeInfo));
+    fclose(logFile);
+
     // Reset user data to simulate signing out
     strcpy(user->email, "");
     strcpy(user->password, "");
     
     printf("Signed out successfully.\n");
 }
+
 
 // Function to change the password For Owner/Member/Librarian
 void changePassword(struct User *user) {
@@ -158,7 +203,28 @@ void changePassword(struct User *user) {
     scanf("%s", newPassword);
     strcpy(user->password, newPassword);
     printf("Password changed successfully!\n");
+
+    // Save the updated password to the file
+    FILE *userFile = fopen("users.txt", "r+"); // Open the file in read and write mode
+    if (userFile == NULL) {
+        printf("Error opening file for writing.\n");
+        return;
+    }
+
+    char email[50], password[50], userType[50];
+    long int pos = 0;
+    while (fscanf(userFile, "%s %s %s", email, password, userType) != EOF) {
+        if (strcmp(email, user->email) == 0) {
+            fseek(userFile, pos, SEEK_SET); // Move the cursor to the beginning of the line
+            fprintf(userFile, "%s %s %s\n", email, newPassword, userType);
+            break;
+        }
+        pos = ftell(userFile); // Store the current position
+    }
+
+    fclose(userFile);
 }
+
 
 //OwnerMenu
 void ownerMenu() {
@@ -216,7 +282,7 @@ void ownerMenu() {
     }
 }
 
-// Function to edit the owner's profile
+// Function to edit owner profile
 void editProfileOwner(struct Owner *profile) {
     printf("Editing profile...\n");
 
@@ -233,6 +299,7 @@ void editProfileOwner(struct Owner *profile) {
 
 }
 
+
 // Function to handle librarian sign-up
 void librarianSignUp() {
     // Librarian Sign Up
@@ -244,21 +311,60 @@ void librarianSignUp() {
     scanf("%s", librarianUser.password);
     strcpy(librarianUser.userType, "Librarian");
 
-    // Store the sign-up details in the global currentUser variable
-    strcpy(currentUser.email, librarianUser.email);
-    strcpy(currentUser.password, librarianUser.password);
-    strcpy(currentUser.userType, librarianUser.userType);
+    // Save the sign-up details to a file
+    FILE *userDataFile = fopen("user_data.txt", "a");
+    if (userDataFile == NULL) {
+        printf("Error opening user data file for sign-up.\n");
+        return;
+    }
+
+    fprintf(userDataFile, "%s %s %s\n", librarianUser.email, librarianUser.password, librarianUser.userType);
+    fclose(userDataFile);
 
     printf("Librarian signed up successfully!\n");
     signIn(&librarianUser); // Automatically sign in after sign-up
 }
 
+
 // Function to handle librarian sign-in
 void librarianSignIn() {
+    struct User librarianUser;
+    printf("Librarian Sign In:\n");
 
-    signIn(&currentUser);
-    
+    // Input librarian's email
+    printf("Enter your email: ");
+    scanf("%s", librarianUser.email);
+
+    // Input librarian's password
+    printf("Enter your password: ");
+    scanf("%s", librarianUser.password);
+
+    // Validate the sign-in details by reading from the user data file
+    FILE *userDataFile = fopen("user_data.txt", "r");
+    if (userDataFile == NULL) {
+        printf("Error opening user data file for sign-in.\n");
+        return;
+    }
+
+    int validSignIn = 0; // Flag to indicate valid sign-in
+    char email[50], password[50], userType[50];
+    while (fscanf(userDataFile, "%s %s %s", email, password, userType) != EOF) {
+        if (strcmp(email, librarianUser.email) == 0 && strcmp(password, librarianUser.password) == 0 && strcmp(userType, "Librarian") == 0) {
+            validSignIn = 1;
+            break;
+        }
+    }
+
+    fclose(userDataFile);
+
+    if (validSignIn) {
+        printf("Sign In successful\n");
+        librarianMenu();
+    } else {
+        printf("Invalid email, password, or user type.\n");
+    }
 }
+
 
 // Function to appoint a librarian
 void appointLibrarian(struct Owner *ownerProfile) {
