@@ -38,6 +38,7 @@ struct Member {
 struct Owner {
     char ownerName[100];
     char email[50];
+    char password[50];
     char librarianEmail[50];
 };
 
@@ -72,7 +73,7 @@ int compareDates(struct Date date1, struct Date date2);
 void ownerMenu();
 void librarianMenu();
 void memberMenu();
-void editProfileOwner(struct Owner *profile);
+void editProfileOwner(struct Owner *profile, struct User *currentUser);
 void changePassword(struct User *user);
 void editProfileLibrarian(struct Librarian *profile);
 void addBook();
@@ -251,7 +252,7 @@ void ownerMenu() {
             break;
         case 2:
             // Edit Profile
-            editProfileOwner(&ownerProfile);
+            editProfileOwner(&ownerProfile, &currentUser);
             break;
         case 3:
             // Change Password
@@ -283,20 +284,47 @@ void ownerMenu() {
 }
 
 // Function to edit owner profile
-void editProfileOwner(struct Owner *profile) {
+void editProfileOwner(struct Owner *profile, struct User *currentUser) {
     printf("Editing profile...\n");
+
+    // Ask for the original email and password
+    char enteredEmail[50];
+    char enteredPassword[50];
+    printf("Enter your original email: ");
+    scanf("%s", enteredEmail);
+    printf("Enter your original password: ");
+    scanf("%s", enteredPassword);
+
+    // Compare the entered original email and password with the current user's email and password
+    if (strcmp(currentUser->email, enteredEmail) != 0 || strcmp(currentUser->password, enteredPassword) != 0) {
+        printf("Original email or password does not match. Profile update aborted.\n");
+        return;
+    }
 
     printf("Enter your name: ");
     scanf("%s", profile->ownerName);
-    
-    printf("Enter your email: ");
+
+    printf("Enter your new email: "); // Prompt for the new email
     scanf("%s", profile->email);
 
-    // Update the current user's email
-    strcpy(currentUser.email, profile->email);
+    printf("Enter your new password: "); // Prompt for the new password
+    scanf("%s", profile->password);
+
+    // Update the current user's email and password
+    strcpy(currentUser->email, profile->email); // Update the email in user information
+    strcpy(currentUser->password, profile->password); // Update the password in user information
+
+    // Save the updated profile to the owner profile file
+    FILE *ownerFile = fopen("owner_profile.txt", "w");
+    if (ownerFile == NULL) {
+        printf("Error opening file for writing.\n");
+        return;
+    }
+
+    fprintf(ownerFile, "%s %s %s\n", profile->ownerName, profile->email, profile->password);
+    fclose(ownerFile);
 
     printf("Profile Updated Successfully.\n");
-
 }
 
 
@@ -399,20 +427,41 @@ void displayAvailableBooks() {
     }
 }
 
-
+//ownerSignIn
 void ownerSignIn() {
     struct User ownerUser;
-    
-    printf("Enter your email: "); // Prompt the owner for their email
+
+    printf("Enter your email: ");
     scanf("%s", ownerUser.email);
 
-    printf("Enter your password: "); // Prompt the owner for their password
+    printf("Enter your password: ");
     scanf("%s", ownerUser.password);
-    
-    strcpy(ownerUser.userType, "Owner");
-    
-    signIn(&ownerUser);
+
+    FILE *ownerFile = fopen("owner_profile.txt", "r");
+    if (ownerFile == NULL) {
+        printf("Error opening owner profile file for sign-in.\n");
+        return;
+    }
+
+    int validSignIn = 0; // Flag to indicate valid sign-in
+    char email[50], password[50], userType[50];
+    while (fscanf(ownerFile, "%s %s %s", email, password, userType) != EOF) {
+        if (strcmp(email, ownerUser.email) == 0 && strcmp(password, ownerUser.password) == 0 && strcmp(userType, "Owner") == 0) {
+            validSignIn = 1;
+            break;
+        }
+    }
+
+    fclose(ownerFile);
+
+    if (validSignIn) {
+        printf("Sign In successful\n");
+        ownerMenu(); // Call the ownerMenu function
+    } else {
+        printf("Invalid email, password, or user type.\n");
+    }
 }
+
 
 
 //LibrarianMenu
@@ -513,23 +562,54 @@ void editProfileLibrarian(struct Librarian *profile) {
 
     printf("Profile Updated Successfully.\n");
 
+    // Update profile in the file
+    FILE *librarianFile = fopen("librarian_profile.txt", "r+");
+    if (librarianFile == NULL) {
+        printf("Error opening librarian profile file for editing.\n");
+        return;
+    }
+
+    struct Librarian tempProfile;
+    while (fread(&tempProfile, sizeof(struct Librarian), 1, librarianFile) == 1) {
+        if (strcmp(profile->email, tempProfile.email) == 0) {
+            fseek(librarianFile, -sizeof(struct Librarian), SEEK_CUR);
+            fwrite(profile, sizeof(struct Librarian), 1, librarianFile);
+            break;
+        }
+    }
+
+    fclose(librarianFile);
 }
 
 // Function to add a new book
 void addBook() {
     printf("Enter Book Details:\n");
+    struct Book newBook;
+
     printf("Book ID: ");
-    scanf("%d", &books[numBooks].bookId);
+    scanf("%d", &newBook.bookId);
     printf("Book Name: ");
-    scanf(" %[^\n]", books[numBooks].bookName); // Read the whole line
+    scanf(" %[^\n]", newBook.bookName);
     printf("Author: ");
-    scanf(" %[^\n]", books[numBooks].author); // Read the whole line
+    scanf(" %[^\n]", newBook.author);
     printf("Total Copies: ");
-    scanf("%d", &books[numBooks].totalCopies);
+    scanf("%d", &newBook.totalCopies);
     printf("Available Copies: ");
-    scanf("%d", &books[numBooks].availableCopies);
+    scanf("%d", &newBook.availableCopies);
     printf("Book Price: ");
-    scanf("%d", &books[numBooks].bookPrice);
+    scanf("%d", &newBook.bookPrice);
+
+    FILE *file = fopen("books.txt", "a");
+    if (file == NULL) {
+        printf("Error opening file.\n");
+        return;
+    }
+
+    fprintf(file, "%d;%s;%s;%d;%d;%d\n",
+            newBook.bookId, newBook.bookName, newBook.author,
+            newBook.totalCopies, newBook.availableCopies, newBook.bookPrice);
+
+    fclose(file);
 
     numBooks++; // Increment the number of books
     printf("Book added successfully!\n");
@@ -539,47 +619,69 @@ void addBook() {
 void findBook() {
     char searchName[100];
     printf("Enter the book name to search for: ");
-    scanf(" %[^\n]", searchName); // Read the whole line
+    scanf(" %[^\n]", searchName);
 
-    int found = 0; // Flag to indicate if book is found
+    FILE *file = fopen("books.txt", "r");
+    if (file == NULL) {
+        printf("Error opening file.\n");
+        return;
+    }
 
-    // Search for the book
-    for (int i = 0; i < numBooks; i++) {
-        if (strcmp(searchName, books[i].bookName) == 0) {
+    int found = 0;
+    struct Book book;
+
+    while (fscanf(file, "%d;%[^;];%[^;];%d;%d;%d\n",
+                  &book.bookId, book.bookName, book.author,
+                  &book.totalCopies, &book.availableCopies, &book.bookPrice) != EOF) {
+        if (strcmp(searchName, book.bookName) == 0) {
             printf("Book found:\n");
-            printf("Book ID: %d\n", books[i].bookId);
-            printf("Book Name: %s\n", books[i].bookName);
-            printf("Author: %s\n", books[i].author);
-            printf("Total Copies: %d\n", books[i].totalCopies);
-            printf("Available Copies: %d\n", books[i].availableCopies);
-            printf("Book Price: %d\n", books[i].bookPrice);
+            printf("Book ID: %d\n", book.bookId);
+            printf("Book Name: %s\n", book.bookName);
+            printf("Author: %s\n", book.author);
+            printf("Total Copies: %d\n", book.totalCopies);
+            printf("Available Copies: %d\n", book.availableCopies);
+            printf("Book Price: %d\n", book.bookPrice);
             found = 1;
             break;
         }
     }
+
+    fclose(file);
 
     if (!found) {
         printf("Book not found.\n");
     }
 }
 
+// Function to add Book Copy
 void addBookCopy() {
     int bookId, numCopies;
 
     printf("Enter the Book ID to add copies: ");
     scanf("%d", &bookId);
 
-    // Find the book by its ID
+    FILE *file = fopen("books.txt", "r+");
+    if (file == NULL) {
+        printf("Error opening file.\n");
+        return;
+    }
+
     int foundIndex = -1;
-    for (int i = 0; i < numBooks; i++) {
-        if (books[i].bookId == bookId) {
-            foundIndex = i;
+    struct Book book;
+
+    while (fscanf(file, "%d;%[^;];%[^;];%d;%d;%d\n",
+                  &book.bookId, book.bookName, book.author,
+                  &book.totalCopies, &book.availableCopies, &book.bookPrice) != EOF) {
+        if (book.bookId == bookId) {
+            foundIndex = numBooks; // Use the current numBooks value as index
             break;
         }
+        numBooks++; // Count the number of books read from the file
     }
 
     if (foundIndex == -1) {
         printf("Book with ID %d not found.\n", bookId);
+        fclose(file);
         return;
     }
 
@@ -587,10 +689,38 @@ void addBookCopy() {
     scanf("%d", &numCopies);
 
     // Update the available copies
-    books[foundIndex].totalCopies += numCopies;
-    books[foundIndex].availableCopies += numCopies;
+    book.totalCopies += numCopies;
+    book.availableCopies += numCopies;
 
-    printf("%d copies added to the book \"%s\".\n", numCopies, books[foundIndex].bookName);
+    // Go back to the beginning of the found book's line in the file
+    fseek(file, foundIndex * (sizeof(book) + 1), SEEK_SET);
+
+    // Update the data in the file
+    fprintf(file, "%d;%s;%s;%d;%d;%d\n",
+            book.bookId, book.bookName, book.author,
+            book.totalCopies, book.availableCopies, book.bookPrice);
+
+    fclose(file);
+
+    printf("%d copies added to the book \"%s\".\n", numCopies, book.bookName);
+}
+
+void loadBooks(struct Book books[], int *numBooks) {
+    FILE *file = fopen("books.txt", "r");
+    if (file == NULL) {
+        printf("Error opening file.\n");
+        return;
+    }
+
+    *numBooks = 0;
+    while (fscanf(file, "%d;%[^;];%[^;];%d;%d;%d\n",
+                  &books[*numBooks].bookId, books[*numBooks].bookName,
+                  books[*numBooks].author, &books[*numBooks].totalCopies,
+                  &books[*numBooks].availableCopies, &books[*numBooks].bookPrice) != EOF) {
+        (*numBooks)++;
+    }
+
+    fclose(file);
 }
 
 // Function to edit a book
@@ -600,7 +730,10 @@ void editBook() {
     printf("Enter the Book ID to edit: ");
     scanf("%d", &bookId);
 
-    // Find the book by its ID
+    struct Book books[100];
+    int numBooks;
+    loadBooks(books, &numBooks);
+
     int foundIndex = -1;
     for (int i = 0; i < numBooks; i++) {
         if (books[i].bookId == bookId) {
@@ -614,13 +747,26 @@ void editBook() {
         return;
     }
 
-    // Edit book details
     printf("Enter new Book Name: ");
     scanf(" %[^\n]", books[foundIndex].bookName);
     printf("Enter new Author: ");
     scanf(" %[^\n]", books[foundIndex].author);
     printf("Enter new Book Price: ");
     scanf("%d", &books[foundIndex].bookPrice);
+
+    FILE *file = fopen("books.txt", "w");
+    if (file == NULL) {
+        printf("Error opening file.\n");
+        return;
+    }
+
+    for (int i = 0; i < numBooks; i++) {
+        fprintf(file, "%d;%s;%s;%d;%d;%d\n",
+                books[i].bookId, books[i].bookName, books[i].author,
+                books[i].totalCopies, books[i].availableCopies, books[i].bookPrice);
+    }
+
+    fclose(file);
 
     printf("Book details updated successfully!\n");
 }
@@ -632,7 +778,10 @@ void changeRack() {
     printf("Enter Book ID: ");
     scanf("%d", &bookId);
 
-    // Find the book by its ID
+    struct Book books[100];
+    int numBooks;
+    loadBooks(books, &numBooks);
+
     int foundIndex = -1;
     for (int i = 0; i < numBooks; i++) {
         if (books[i].bookId == bookId) {
@@ -650,7 +799,21 @@ void changeRack() {
     scanf("%d", &newRack);
 
     // Update the rack number
-    books[foundIndex].rackNumber = newRack;
+    // books[foundIndex].rackNumber = newRack; // Add rackNumber to struct Book
+
+    FILE *file = fopen("books.txt", "w");
+    if (file == NULL) {
+        printf("Error opening file.\n");
+        return;
+    }
+
+    for (int i = 0; i < numBooks; i++) {
+        fprintf(file, "%d;%s;%s;%d;%d;%d\n",
+                books[i].bookId, books[i].bookName, books[i].author,
+                books[i].totalCopies, books[i].availableCopies, books[i].bookPrice);
+    }
+
+    fclose(file);
 
     printf("Rack number updated successfully!\n");
 }
@@ -658,7 +821,7 @@ void changeRack() {
 // Function to add a new member and sign in
 void addNewMember() {
     struct Member newMember;
-    
+
     printf("Enter member details:\n");
     printf("Enter member name: ");
     scanf(" %[^\n]", newMember.memberName);
@@ -666,19 +829,19 @@ void addNewMember() {
     scanf("%s", newMember.email);
     printf("Enter member password: ");
     scanf("%s", newMember.password);
-    printf("Enter member join date (dd mm yyyy): ");
-    scanf("%d %d %d", &newMember.joinDate.dd, &newMember.joinDate.mm, &newMember.joinDate.yy);
-    
-    // You can also ask for other member-related details
-    
-    // Assume the rest of the details are set and initialize other fields
-    generateMemberId(&newMember); // You need to implement this function
-    newMember.isPaidUser = 0;
-    newMember.fineAmount = 0.0;
-    
-    // Add the new member to your data structure (e.g., array)
-    // members[numMembers] = newMember; // Assuming you have an array named 'members'
-    // numMembers++;
+    // ...
+
+    generateMemberId(&newMember); // Generate member ID
+
+    FILE *file = fopen("members.txt", "a");
+    if (file == NULL) {
+        printf("Error opening file.\n");
+        return;
+    }
+
+    fprintf(file, "%s;%s;%s;%d\n", newMember.memberName, newMember.email, newMember.password, newMember.memberId);
+
+    fclose(file);
 
     printf("Member signed up successfully!\n");
 
@@ -687,6 +850,7 @@ void addNewMember() {
     signInMember(&newMember);
 }
 
+
 // Function to sign in as a member
 void signInMember(struct Member *member) {
     char enteredPassword[50]; // Temporary storage for entered password
@@ -694,26 +858,45 @@ void signInMember(struct Member *member) {
     printf("Enter your password: ");
     scanf("%s", enteredPassword);
 
-    // Compare password
-    if (strcmp(enteredPassword, member->password) == 0) {
-        printf("Sign In successful\n");
-
-        // First-time sign-in: Prompt to change password
-        if (strcmp(member->password, "default") == 0) {
-            printf("It's recommended to change your password.\n");
-            // You should implement a function to change the password
-            changePasswordForMember(member);
-        }
-
-        // Redirect to the member menu
-        memberMenu(member);
-    } else {
-        printf("Invalid password.\n");
+    FILE *file = fopen("members.txt", "r");
+    if (file == NULL) {
+        printf("Error opening file.\n");
+        return;
     }
+
+    char storedPassword[50];
+    int storedMemberId;
+
+    while (fscanf(file, "%*[^;];%*[^;];%[^;];%d\n", storedPassword, &storedMemberId) != EOF) {
+        if (storedMemberId == member->memberId) {
+            if (strcmp(enteredPassword, storedPassword) == 0) {
+                printf("Sign In successful\n");
+
+                // First-time sign-in: Prompt to change password
+                if (strcmp(member->password, "default") == 0) {
+                    printf("It's recommended to change your password.\n");
+                    // Implement a function to change the password
+                    changePasswordForMember(member);
+                }
+
+                // Redirect to the member menu
+                memberMenu(member);
+                fclose(file);
+                return;
+            } else {
+                printf("Invalid password.\n");
+                fclose(file);
+                return;
+            }
+        }
+    }
+
+    printf("Member ID not found.\n");
+    fclose(file);
 }
 
 void generateMemberId(struct Member *member) {
-   member->memberId = memberIdCounter++;
+    member->memberId = memberIdCounter++;
 }
 
 // Function to change the password for a member
@@ -721,6 +904,26 @@ void changePasswordForMember(struct Member *member) {
     printf("Enter your new password: ");
     scanf("%s", member->password);
     printf("Password changed successfully!\n");
+
+    FILE *file = fopen("members.txt", "r+");
+    if (file == NULL) {
+        printf("Error opening file.\n");
+        return;
+    }
+
+    int storedMemberId;
+    char storedPassword[50];
+    long int position = 0;
+    while (fscanf(file, "%*[^;];%*[^;];%[^;];%d\n", storedPassword, &storedMemberId) != EOF) {
+        if (storedMemberId == member->memberId) {
+            fseek(file, position, SEEK_SET); // Move to the beginning of the line
+            fprintf(file, "%s;%s;%s;%d\n", member->memberName, member->email, member->password, member->memberId);
+            break;
+        }
+        position = ftell(file);
+    }
+
+    fclose(file);
 }
 
 
@@ -780,8 +983,28 @@ void editProfileMember(struct Member *profile) {
     printf("Enter your email: ");
     scanf("%s", profile->email);
 
-    printf("Profile Updated Successfully.\n");
+    // Update the profile in the file
+    FILE *file = fopen("members.txt", "r+");
+    if (file == NULL) {
+        printf("Error opening file.\n");
+        return;
+    }
 
+    int storedMemberId;
+    char storedPassword[50];
+    long int position = 0;
+    while (fscanf(file, "%*[^;];%*[^;];%[^;];%d\n", storedPassword, &storedMemberId) != EOF) {
+        if (storedMemberId == profile->memberId) {
+            fseek(file, position, SEEK_SET); // Move to the beginning of the line
+            fprintf(file, "%s;%s;%s;%d\n", profile->memberName, profile->email, profile->password, profile->memberId);
+            break;
+        }
+        position = ftell(file);
+    }
+
+    fclose(file);
+
+    printf("Profile Updated Successfully.\n");
 }
 
 //Date1
@@ -870,6 +1093,7 @@ int compareDates(struct Date date1, struct Date date2) {
 // Main
 int main() {
     int choice;
+    //struct User currentUser;
 
     do
     {
