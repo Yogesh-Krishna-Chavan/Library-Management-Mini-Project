@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <time.h>
 #include <string.h>
+#include <stdlib.h>
 
 // Display the main menu
 void displayMainMenu()
@@ -22,7 +23,7 @@ struct Date {
 struct User {
     char email[50];
     char password[50];
-    char userType[20]; // Owner/Librarian/Member
+    int userType; // Owner/Librarian/Member
 };
 
 struct Member {
@@ -65,7 +66,7 @@ struct Book availableBooks[] = {
 
 // Function prototypes
 void signUp();
-void signIn();
+int signIn();
 void inputDate(struct Date *date);
 void displayDate(struct Date date);
 void addDays(struct Date *date, int days);
@@ -103,14 +104,14 @@ static int memberIdCounter = 1000;
 void signUp() {
     struct User newUser;
 
-    printf("Enter owner email & password\n");
-    
+    printf("Enter user type (1 for Owner, 2 for Librarian, 3 for Member): ");
+    scanf("%d", &newUser.userType);
+
     printf("Enter an email: ");
     scanf("%s", newUser.email);
+
     printf("Enter a password: ");
     scanf("%s", newUser.password);
-
-    strcpy(newUser.userType, "Owner"); // Set the user type to "Owner"
 
     // Save user data to a file
     FILE *userFile = fopen("users.txt", "a"); // Open the file in append mode
@@ -119,17 +120,26 @@ void signUp() {
         return;
     }
 
-    fprintf(userFile, "%s %s %s\n", newUser.email, newUser.password, newUser.userType);
+    fprintf(userFile, "%d %s %s\n", newUser.userType, newUser.email, newUser.password);
     fclose(userFile);
 
-    printf("Owner signed up successfully!\n");
+    printf("User signed up successfully!\n");
 }
 
 
-//SignIn
-void signIn(struct User *user) {
+
+// Function to handle user sign-in
+int signIn(struct User *user) {
+    int userTypeChoice;
     char enteredEmail[50];
     char enteredPassword[50];
+
+    printf("Select your user type:\n");
+    printf("1. Owner\n");
+    printf("2. Librarian\n");
+    printf("3. Member\n");
+    printf("Enter your choice (1/2/3): ");
+    scanf("%d", &userTypeChoice);
 
     printf("Enter your email: ");
     scanf("%s", enteredEmail);
@@ -139,39 +149,50 @@ void signIn(struct User *user) {
     FILE *userFile = fopen("users.txt", "r");
     if (userFile == NULL) {
         printf("Error opening file for reading.\n");
-        return;
+         return 0; // Sign-in failed
     }
 
     struct User currentUser;
     int signInSuccessful = 0; // Flag to indicate successful sign-in
-    while (fscanf(userFile, "%s %s %s", currentUser.email, currentUser.password, currentUser.userType) != EOF) {
-        if (strcmp(enteredEmail, currentUser.email) == 0 && strcmp(enteredPassword, currentUser.password) == 0) {
-            signInSuccessful = 1; // Set the sign-in flag
-            strcpy(user->email, currentUser.email); // Copy user data to the passed user pointer
-            strcpy(user->password, currentUser.password);
-            strcpy(user->userType, currentUser.userType);
-            break;
-        }
+
+    while (fscanf(userFile, "%d %s %s", &currentUser.userType, currentUser.email, currentUser.password) != EOF) {
+    if (userTypeChoice == currentUser.userType &&
+        strcmp(enteredEmail, currentUser.email) == 0 &&
+        strcmp(enteredPassword, currentUser.password) == 0) {
+        signInSuccessful = 1; // Set the sign-in flag
+            *user = currentUser; // Copy user data to the passed user pointer
+            break; // Exit the loop when a match is found
     }
+}
+
 
     fclose(userFile);
 
     if (signInSuccessful) {
         printf("SignIn successful\n");
-        if (strcmp(user->userType, "Owner") == 0) {
-            ownerMenu();
-        } else if (strcmp(user->userType, "Librarian") == 0) {
-            librarianMenu();
-        } else if (strcmp(user->userType, "Member") == 0) {
-            memberMenu();
-        } else {
-            printf("Invalid user type.\n");
+
+        // Redirect to the appropriate menu based on user type
+        switch (userTypeChoice) {
+            case 1:
+                ownerMenu();
+                break;
+            case 2:
+                librarianMenu();
+                break;
+            case 3:
+                memberMenu();
+                break;
+            default:
+                printf("Invalid user type.\n");
+                break;
         }
+
+        return 1; // Sign-in successful
     } else {
-        printf("Invalid email or password.\n");
+        printf("Invalid email, password, or user type.\n");
+        return 0; // Sign-in failed
     }
 }
-
 
 // Sign Out Function
 void signOut(struct User *user) {
@@ -197,34 +218,49 @@ void signOut(struct User *user) {
 }
 
 
-// Function to change the password For Owner/Member/Librarian
+// Function to change the password for Owner/Member/Librarian
 void changePassword(struct User *user) {
     char newPassword[50];
     printf("Enter your new password: ");
     scanf("%s", newPassword);
-    strcpy(user->password, newPassword);
-    printf("Password changed successfully!\n");
 
     // Save the updated password to the file
-    FILE *userFile = fopen("users.txt", "r+"); // Open the file in read and write mode
+    FILE *userFile = fopen("users.txt", "r+");
     if (userFile == NULL) {
-        printf("Error opening file for writing.\n");
+        printf("Error opening file for reading and writing.\n");
         return;
     }
 
     char email[50], password[50], userType[50];
-    long int pos = 0;
+    FILE *tempFile = fopen("temp_users.txt", "w"); // Create a temporary file
+    int passwordChanged = 0;
+
     while (fscanf(userFile, "%s %s %s", email, password, userType) != EOF) {
         if (strcmp(email, user->email) == 0) {
-            fseek(userFile, pos, SEEK_SET); // Move the cursor to the beginning of the line
-            fprintf(userFile, "%s %s %s\n", email, newPassword, userType);
-            break;
+            fprintf(tempFile, "%s %s %s\n", email, newPassword, userType);
+            // Update the password in the user structure
+            strcpy(user->password, newPassword);
+            passwordChanged = 1;
+        } else {
+            fprintf(tempFile, "%s %s %s\n", email, password, userType);
         }
-        pos = ftell(userFile); // Store the current position
     }
 
     fclose(userFile);
+    fclose(tempFile);
+
+    if (passwordChanged) {
+        // Replace the original file with the temporary file
+        remove("users.txt");
+        rename("temp_users.txt", "users.txt");
+
+        printf("Password changed successfully!\n");
+    } else {
+        printf("Failed to change the password. User not found.\n");
+    }
 }
+
+
 
 
 //OwnerMenu
@@ -337,7 +373,7 @@ void librarianSignUp() {
     scanf("%s", librarianUser.email);
     printf("Enter librarian's password: ");
     scanf("%s", librarianUser.password);
-    strcpy(librarianUser.userType, "Librarian");
+    librarianUser.userType = 2; // Set user type to Librarian (2)
 
     // Save the sign-up details to a file
     FILE *userDataFile = fopen("user_data.txt", "a");
@@ -346,11 +382,10 @@ void librarianSignUp() {
         return;
     }
 
-    fprintf(userDataFile, "%s %s %s\n", librarianUser.email, librarianUser.password, librarianUser.userType);
+    fprintf(userDataFile, "%d %s %s\n", librarianUser.userType, librarianUser.email, librarianUser.password);
     fclose(userDataFile);
 
     printf("Librarian signed up successfully!\n");
-    signIn(&librarianUser); // Automatically sign in after sign-up
 }
 
 
@@ -1093,7 +1128,7 @@ int compareDates(struct Date date1, struct Date date2) {
 // Main
 int main() {
     int choice;
-    //struct User currentUser;
+    struct User currentUser;
 
     do
     {
@@ -1109,10 +1144,21 @@ int main() {
             break;
     
         case 2:
-            //Sign in for user
-            printf("\nSign In for a new user:\n");
-            signIn(&currentUser);
-            break;
+            printf("Sign In as an Owner:\n");
+                if (signIn(&currentUser)) {
+                    // User signed in successfully, you can now perform actions based on user type.
+                    if (currentUser.userType == 1) {
+                        printf("Owner Menu\n");
+                        // Implement owner-specific functionality here.
+                    } else if (currentUser.userType == 2) {
+                        printf("Librarian Menu\n");
+                        // Implement librarian-specific functionality here.
+                    } else if (currentUser.userType == 3) {
+                        printf("Member Menu\n");
+                        // Implement member-specific functionality here.
+                    }
+                }
+                break;
 
         case 0:
             printf("Exiting the program.\n");
